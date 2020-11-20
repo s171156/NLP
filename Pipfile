@@ -4,8 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-wikiextractor = "*"
-mecab-python3 = "*"
 mecab = "*"
 gensim = "*"
 pandas = "*"
@@ -18,8 +16,14 @@ python-dotenv = "*"
 requests = "*"
 neologdn = "*"
 sumy = "*"
+matplotlib = "*"
+transformers = "*"
+wikiextractor = "*"
+mecab-python3 = "*"
+tensorflow-gpu = "*"
 
 [dev-packages]
+cython = "*"
 flake8 = "*"
 autopep8 = "*"
 

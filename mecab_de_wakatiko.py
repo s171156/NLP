@@ -118,13 +118,6 @@ class wakatiko:
         wakati_path = df_path.with_name(f'{df_path.stem}_wakati.csv')
         df.to_csv(wakati_path, index=False, header=False, sep=' ')
 
-    def test_extract_lemma_by_parse(self):
-        text = '1ヶ月後にまたここで会いましょう。'
-        text = text.rstrip()
-        lemma_list = [chunk.split('\t')[1].split(',')[6]
-                      for chunk in self.tagger.parse(text).splitlines()[:-1] if chunk.split('\t')[1].split(',')[0] in ['名詞', '形容詞', '動詞']]
-        print(lemma_list)
-
 
 if __name__ == "__main__":
     wakati = wakatiko()

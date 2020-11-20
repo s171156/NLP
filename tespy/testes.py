@@ -1,3 +1,4 @@
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import oseti
@@ -23,12 +24,14 @@ def test_tfidf(corpus: list):
     # print(df_tfidf)
 
 
+def rename_df_col():
+    df = pd.DataFrame({'A_a': [1, 2, 3], 'B_b': [1, 2, 3], 'C_c': [1, 2, 3]})
+    df.rename(columns=lambda x: x.split('_')[1], inplace=True)
+    # def columns(x): return {x.split('_')[0]: x.split('_')[1]}
+    # print(columns(df.columns.values))
+    print(df)
+
+
 if __name__ == "__main__":
-    text = 'hello world'
-    print(text[-1] not in ['!', "?", '。'])
-    print(text[-1] in ['!', "?", '。'] is False)
-    if text[-1] in ['!', "?", '。'] is False:
-        print(True)
-        text = text + '!'
-    print(text)
+    rename_df_col()
     pass

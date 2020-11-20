@@ -1,10 +1,14 @@
 import pandas as pd
+from pandas.tseries.offsets import SemiMonthEnd
 from my_module import path_manager as pm
 from distutils import dir_util
 import re
 from plotter import ReviewPlotter
 import dfreshaper
 import pathlib
+import gcp_sentiment
+import time
+import json
 
 
 def marge_csv():
@@ -111,22 +115,48 @@ def count_char():
     return count
 
 
+def fetch_sentiment(path: pathlib.Path):
+    time.sleep(1)
+    txt_path = path.with_name(f'{path.stem}_commnets.txt')
+    json_path = path.with_suffix('.json')
+    with open(txt_path, mode='r') as f:
+        text = f.read()
+        text = gcp_sentiment.analyze_sentiment_by_requests(text)
+    with open(json_path, mode='w', encoding='utf-8') as f:
+        f.write(text)
+    print(f'output {json_path}')
+
+
+def marge_senti_json():
+
+    def json2df(path: pathlib.Path):
+        with open(path.with_name(f'{path.stem}.json'), mode='r') as f:
+            df = pd.json_normalize(json.load(f)['sentences'], sep='_')
+            df.rename(columns=lambda x: x.split('_')[1], inplace=True)
+            return df
+
+    paths = get_all_reviews_paths(is_format=True)
+    df_list = [json2df(path) for path in paths]
+    df = pd.concat(df_list, axis=0, sort=True)
+    df.to_csv("sent_senti.csv", index=False)
+
+
 if __name__ == "__main__":
     # path = pathlib.Path('earphone_review.csv')
     # dfreshaper.fmt_reviews(path)
     # path = pathlib.Path('fearphone_review.csv')
     # split_review_by_sent(path)
-    # sort_review(path)
     # test_plot2()
     # plot_chronological(True)
-    paths = get_all_reviews_paths(is_format=True)
-    c = count_char()
-    for path in paths:
-        print(c(path))
+    # paths = get_all_reviews_paths(is_format=True)
+    # for path in paths:
+    #     json_path = path.with_name(f'{path.stem}.json')
+    #     with open(json_path, mode='r') as f:
+    #         json_tmp = json.load(f)
+    #         df = pd.io.json.json_normalize(json_tmp['sentences'])
+
     # csv2txt(path)
     # dfreshaper.fmt_reviews(path)
     # marge_csv()
-    # qre = questionnaire.Questionnaire()
     # copy_all_reviews()
-
     pass

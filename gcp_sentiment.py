@@ -46,7 +46,7 @@ def analyze_sentiment_by_requests(text):
     encoding_type = language_v1.EncodingType.UTF8
     response = requests.post(
         api_endpoint, json={'document': document, 'encodingType': encoding_type})
-    print(response.text)
+    return response.text
 
 
 if __name__ == "__main__":
