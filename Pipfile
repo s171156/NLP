@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+wikiextractor = "*"
+mecab-python3 = "*"
+mecab = "*"
+gensim = "*"
+pandas = "*"
+ginza = "*"
+scikit-learn = "*"
+oseti = "*"
+fasttext = "*"
+google-cloud-language = "*"
+python-dotenv = "*"
+requests = "*"
+neologdn = "*"
+sumy = "*"
+
+[dev-packages]
+flake8 = "*"
+autopep8 = "*"
+
+[requires]
+python_version = "3.7"

@@ -1,0 +1,6 @@
+Click below URLs for detail
+
+slothlib:
+https://qiita.com/Hironsan/items/2466fe0f344115aff177
+-> CTRL + F [Slothlib]
+http://svn.sourceforge.jp/svnroot/slothlib/CSharp/Version1/SlothLib/NLP/Filter/StopWord/word/Japanese.txt
