@@ -15,15 +15,16 @@ google-cloud-language = "*"
 python-dotenv = "*"
 requests = "*"
 neologdn = "*"
-sumy = "*"
 matplotlib = "*"
 transformers = "*"
 wikiextractor = "*"
 mecab-python3 = "*"
 tensorflow-gpu = "*"
+torch = "*"
+torchvision = "*"
+cython = "*"
 
 [dev-packages]
-cython = "*"
 flake8 = "*"
 autopep8 = "*"
 

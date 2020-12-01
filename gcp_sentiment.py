@@ -11,10 +11,10 @@ API_KEY = settings.GCP
 api_endpoint = 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=' + API_KEY
 
 
-def analyze_sentiment_by_client(text):
+def analyze_sentiment_by_client(text: str):
     """
     NOTICE
-
+    ---
     analyzeSentiment関数は戻り値としてAnalyzeSentimentResponseを返す。
     このオブジェクトは__dict__属性を持たないため、JSONに直接シリアライズできない。
     """
@@ -34,10 +34,14 @@ def analyze_sentiment_by_client(text):
     print("Sentiment: {}, {}".format(sentiment.score, sentiment.magnitude))
 
 
-def analyze_sentiment_by_requests(text):
-    """
-    requestsとREST APIによる実装。
-    レスポンスとしてJSONを取得できる。
+def analyze_sentiment_by_requests(text) -> str:
+    """CloudNaturalLanguageAPI（RESTfulAPI）に感情分析のリクエストを投げます。
+
+    Args:
+        text ([str]): 分析対象の文字列
+
+    Returns:
+        str: JSONレスポンスの文字列
     """
     # リクエストのセット
     type_ = language_v1.Document.Type.PLAIN_TEXT
@@ -50,6 +54,4 @@ def analyze_sentiment_by_requests(text):
 
 
 if __name__ == "__main__":
-    # text = "安物かとおもったら付属品だけでもお得感がありました。マイク付きのケーブルとマイク無しのオーディオケーブルにこのヘッドホンとケーブルの接続構造は凄い。プラスチックだけど簡単には壊れないだろう。スマホps4で問題無く使えてます。持ち運びに便利な巾着がとても良いです。"
-    # analyze_sentiment_by_requests(text)
     pass

@@ -21,14 +21,24 @@ tokenizer = BertJapaneseTokenizer.from_pretrained(model_name)
 # CPU/GPU環境の設定
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-df = pd.read_csv('resources/review/fearphone_review_labeled2.csv')
+# 学習に利用するセンテンスを決定する境界値
+boundary = 0.2
+# ラベル付きデータ（極性値を付与したレビューのセンテンス）の読み込み
+df = pd.read_csv('sent_senti.csv')
+# 無極性のレビューを除去する。
+df = df[df['score'] != 0]
+# 感情値の絶対値が境界値以上の行を抽出
+df = df[abs(df['score']) >= boundary]
+# 感情値が正の場合は１、負の場合は0のラベルを付与した列を挿入
+df['label'] = df['score'].apply(lambda x: 1 if 0 < x else 0)
 # 文章中の単語数を集計した列を挿入
-df['length'] = df['comments'].apply(lambda x: len(tokenizer.tokenize(x)))
+df['length'] = df['content'].apply(lambda x: len(tokenizer.tokenize(x)))
 # 単語数を基準に降順にソート
 df.sort_values('length', ascending=False, inplace=True)
-df_neg = df[df['label'] == '__label__0']
-df_pos = df[df['label'] == '__label__1']
-
+# ネガティブな文章のデータフレーム
+df_neg = df[df['label'] == 0]
+# ポジティブな文章のデータフレーム
+df_pos = df[df['label'] == 1]
 # データ数の少ない一方の極性にデータ数を揃える。
 if len(df_pos) > len(df_neg):
     df_pos = df_pos[:len(df_neg)]
@@ -36,18 +46,26 @@ elif len(df_neg) > len(df_pos):
     df_neg = df_neg[:len(df_pos)]
 # データフレームを結合
 df = pd.concat([df_pos, df_neg])
-sentences = df['comments'].values
-labels = [1 if label == '__label__1' else 0 for label in df['label'].values]
+# 文章のリストを格納
+sentences = df['content'].values
+# ラベルのリストを格納
+labels = df['label'].values
 
 
-def show_status_of_sentences2():
+def show_status_of_sentences(boundary: float = 0.0):
     """
     センテンスの状態を表示します。
     """
+    # # データフレームの読み込み
+    # df = pd.read_csv('sent_senti.csv')
+    # # 無極性のレビューを除去
+    # df = df[df['score'] != 0]
+    # # 感情値の絶対値が境界値以上の行を抽出
+    # df = df[abs(df['score']) >= boundary]
 
     # ポジティブなレビューとネガティブなレビューの総数を取得
-    pos = (df['label'] == '__label__1').sum()
-    neg = (df['label'] == '__label__0').sum()
+    pos = (df['score'] >= boundary).sum()
+    neg = (df['score'] <= -boundary).sum()
     print(f'positive: {pos}, negative: {neg}')
     # センテンスの多い極性とセンテンスの総数の差を表示
     polarity = 'positive' if pos > neg else 'negative'
@@ -55,7 +73,7 @@ def show_status_of_sentences2():
     print(f'polarity: {polarity}, difference: {diff}')
 
     # レビューの単語数を取得
-    sentences = df['comments'].values
+    sentences = df['content'].values
     words = [len(tokenizer.tokenize(sent)) for sent in sentences]
 
     print(f'最大単語数: {max(words)}')
@@ -67,7 +85,7 @@ def show_status_of_sentences2():
     print('上記の最大単語数にSpecial token（[CLS], [SEP]）の+2をした値が最大単語数')
 
 
-# show_status_of_sentences2()
+# show_status_of_sentences()
 # sys.exit()
 
 input_ids = []
@@ -78,8 +96,7 @@ for sent in sentences:
     encoded_dict = tokenizer.encode_plus(
         sent,
         add_special_tokens=True,  # Special Tokenの追加
-        # max_length=27,           # 文章の長さを固定（Padding/Trancatinating）
-        max_length=97,           # 文章の長さを固定（Padding/Trancatinating）
+        max_length=28,           # 文章の長さを固定（Padding/Trancatinating）
         pad_to_max_length=True,  # PADDINGで埋める
         return_attention_mask=True,   # Attention maksの作成
         return_tensors='pt',  # Pytorch tensorsで返す
@@ -105,6 +122,7 @@ labels = torch.tensor(labels)
 
 # データセットクラスの作成
 dataset = TensorDataset(input_ids, attention_masks, labels)
+
 
 # 90%地点のIDを取得
 train_size = int(0.9 * len(dataset))
@@ -190,7 +208,7 @@ def validation(model):
 
 # 学習の実行
 # max_epoch = 4
-max_epoch = 3
+max_epoch = 5
 train_loss_ = []
 test_loss_ = []
 
@@ -211,8 +229,7 @@ model.eval()  # 訓練モードをオフ
 
 # ファインチューニング済みモデルのセーブ
 # model.save_pretrained('my_pretrained_model')
-model.save_pretrained(
-    f'my_pretrained_models/undersampling/model2_e{max_epoch}')
+model.save_pretrained(f'my_pretrained_models/undersampling/model_e{max_epoch}')
 
 # 検証方法の確認（1バッチ分で計算ロジックに確認）
 
@@ -243,4 +260,4 @@ for batch in validation_dataloader:
 df_result = pd.concat(df_list, axis=0)
 # df_result.to_csv('result.csv', index=False)
 df_result.to_csv(
-    f'my_pretrained_models/results/undersampling/model2_e{max_epoch}.csv', index=False)
+    f'my_pretrained_models/results/undersampling/model_e{max_epoch}.csv', index=False)

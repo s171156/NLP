@@ -2,7 +2,6 @@ from ginza.bunsetu_recognizer import bunsetu_phrase_span, bunsetu_span
 from my_module import text_formatter as tf
 from collections import Counter
 from spacy import displacy
-from sumy.summarizers.lex_rank import LexRankSummarizer
 import numpy as np
 from typing import Tuple, List
 import spacy
@@ -13,83 +12,6 @@ from ginza import bunsetu_recognizer as br
 import ginza
 # Ginzaの辞書をロード
 nlp = spacy.load('ja_ginza')
-
-
-def lexrank_scoring(text: str) -> Tuple[List[str], np.ndarray]:
-    """
-    LexRankアルゴリズムによって文に点数をつける。
-    この点数は文の重要度とみなすことができる。
-    Parameters
-    ----------
-    text : str
-        分析対象のテキスト。
-    Returns
-    -------
-    List[str]
-        text を文のリストに分解したもの。
-    np.ndarray
-        文のリストに対応する重要度のリスト。
-    """
-    doc = nlp(text)
-
-    # 文のリストと単語のリストをつくる
-    sentences = []
-    corpus = []
-    for sent in doc.sents:
-        sentences.append(sent.text)
-        tokens = []
-        for token in sent:
-            # 文に含まれる単語のうち, 名詞・副詞・形容詞・動詞に限定する
-            if token.pos_ in ('NOUN', 'ADV', 'ADJ', 'VERB'):
-                # ぶれをなくすため, 単語の見出し語 Token.lemma_ を使う
-                tokens.append(token.lemma_)
-        corpus.append(tokens)
-    # sentences = [文0, 文1, ...]
-    # corpus = [[文0の単語0, 文0の単語1, ...], [文1の単語0, 文1の単語1, ...], ...]
-
-    # sumyライブラリによるLexRankスコアリング
-    lxr = LexRankSummarizer()
-    tf_metrics = lxr._compute_tf(corpus)
-    idf_metrics = lxr._compute_idf(corpus)
-    matrix = lxr._create_matrix(corpus, lxr.threshold, tf_metrics, idf_metrics)
-    scores = lxr.power_method(matrix, lxr.epsilon)
-    # scores = [文0の重要度, 文1の重要度, ...]
-
-    return sentences, scores
-
-
-def extract(sentences: List[str], scores: np.ndarray, n: int) -> List[str]:
-    """
-    スコアの高い順にn個の文を抽出する。
-    Parameters
-    ----------
-    sentences : List[str]
-        文のリスト。
-    scores : np.ndarray
-        スコアのリスト。
-    n : int
-        抽出する文の数。
-    Returns
-    -------
-    List[str]
-        sentencesから抽出されたn個の文のリスト。
-    """
-    assert len(sentences) == len(scores)
-
-    # scoresのインデックスリスト
-    indices = range(len(scores))
-
-    # スコアの大きい順に並べ替えたリスト
-    sorted_indices = sorted(indices, key=lambda i: scores[i], reverse=True)
-
-    # スコアの大きい順からn個抽出したリスト
-    extracted_indices = sorted_indices[:n]
-
-    # インデックスの並び順をもとに戻す
-    extracted_indices.sort()
-
-    # 抽出されたインデックスに対応する文のリストを返す
-    return [sentences[i] for i in extracted_indices]
 
 
 def similarity_matrix(texts: List[str]) -> List[List[np.float64]]:

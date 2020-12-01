@@ -31,7 +31,7 @@ def fmt_comments(text: str):
     '''
     # URLを除去
     text = re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)
-    # mecabの形態素解析では25文字以上の英字は分割されるため、26文字以上の英字は除去。
+    # mecabの形態素解析で分割される25(26)文字以上の英字を除去。
     text = re.sub(r'[a-zA-Z0-9\W_]{26,}', '', text)
     # 繰り返し表現や半角全角を吸収。
     text = neologdn.normalize(text)

@@ -1,5 +1,4 @@
 import pandas as pd
-from pandas.tseries.offsets import SemiMonthEnd
 from my_module import path_manager as pm
 from distutils import dir_util
 import re
@@ -10,15 +9,29 @@ import gcp_sentiment
 import time
 import json
 
+# インデックスをプライマリーキーにASINを外部参照
+# ASINを元にテーブルを作成
 
-def marge_csv():
-    paths = get_all_reviews_paths()
+
+def get_dirs(path: str):
+    dirs = [p for p in pathlib.Path(path).iterdir() if p.is_dir()]
+    return dirs
+
+
+def get_dirs_name(path: str):
+    dirs = get_dirs(path)
+    dirs = list(map(lambda x: x.stem, dirs))
+    return dirs
+
+
+def marge_csv(path: str, file_name: str):
+    path = pathlib.Path(path)
+    paths = path.glob('*.csv')
     # csvファイルの中身を追加していくリストを用意
     data_list = [pd.read_csv(path) for path in paths]
-    # リストを全て行方向に結合
+    # リストを全て縦に結合
     df = pd.concat(data_list, axis=0, sort=True)
-
-    df.to_csv("earphone_review.csv", index=False)
+    df.to_csv(file_name, index=False)
 
 
 def get_all_reviews_paths(is_format: bool = False):
@@ -32,19 +45,20 @@ def get_all_reviews_paths(is_format: bool = False):
     repatter = re.compile(pattern)
     if is_format is False:
         # 辞書内包表記 {key:"拡張子のないファイル名",item:"ファイルのパス"}
-        paths_gen = (p for p in reviews_path.glob(
-            '**/*.csv') if re.search(repatter, str(p)))
+        paths_gen = [p for p in reviews_path.glob(
+            '**/*.csv') if re.search(repatter, str(p))]
     else:
         # 辞書内包表記 {key:"拡張子のないファイル名",item:"ファイルのパス"}
-        paths_gen = (p.with_name(f'f{p.name}') for p in reviews_path.glob(
-            '**/*.csv') if re.search(repatter, str(p)))
+        paths_gen = [p.with_name(f'f{p.name}') for p in reviews_path.glob(
+            '**/*.csv') if re.search(repatter, str(p))]
 
     return paths_gen
 
 
 def copy_all_reviews():
     '''
-    Copy Amazon Review CSV.
+    コピー元ファイルの更新日時が古い場合はコピー先のファイルを上書きをしない。
+    非推奨：コマンド打ったほうが簡単
     '''
     # コピー元のレビューディレクトリ
     # reviews_path_src = r'C:/Users/yaroy/Documents/Python_Projects/Crawler/Amazon/csv/reviews/'
@@ -102,7 +116,7 @@ def csv2txt(path: pathlib.Path):
         f.writelines(comments)
 
 
-def count_char():
+def count_character():
     chars = 0
 
     def count(path: pathlib.Path):

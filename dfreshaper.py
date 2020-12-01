@@ -1,8 +1,20 @@
+import pathlib
 import pandas as pd
 from pathlib import Path
 from my_module import compressor
 from my_module import text_formatter as tf
 import re
+from sklearn.model_selection import train_test_split
+from typing import List
+
+
+def gen_model_resource(sentences: List[str], labels: List[str]):
+    x_train, x_test, y_train, y_test = train_test_split(
+        sentences, labels, test_size=0.1, stratify=labels, random_state=0)
+    pd.DataFrame({'y_train': y_train, 'x_train': x_train}
+                 ).to_csv('train_data.csv', index=False)
+    pd.DataFrame({'y_test': y_test, 'x_test': x_test}
+                 ).to_csv('test_data.csv', index=False)
 
 
 def aggregate_by_rate(review_path: Path, freq: str = 'M') -> pd.DataFrame:
@@ -89,6 +101,49 @@ def fmt_labeled_review(review_path: Path):
     df.to_csv(labeled_file_path, index=False)
 
 
+def fmt_labeled_review2(review_path: Path):
+    def add_label(rate: int):
+        if rate == 4:
+            return '__label__1'
+        elif rate <= 2:
+            return '__label__0'
+    # ラベルを付与したCSVの出力先
+    labeled_file_path = review_path.with_name(
+        f'{review_path.stem}_labeled2.csv')
+    # CSVの読み込み
+    df = pd.read_csv(review_path)
+    # 必要な情報以外を削除
+    df = df[['comments', 'rates']]
+    df = df[df['rates'].isin([1, 2, 4])]
+    # ラベルを付与
+    df['label'] = df['rates'].apply(add_label)
+    df = df[['label', 'comments']]
+    # CSVへ出力
+    df.to_csv(labeled_file_path, index=False)
+
+
+def fmt_labeled_sent(sent_path: Path, boundary: float = 0.2):
+    # ラベルを付与したCSVの出力先
+    labeled_file_path = sent_path.with_name(
+        f'{sent_path.stem}_labeled.csv')
+    # CSVの読み込み
+    df = pd.read_csv(sent_path)
+    # 列を抽出
+    df = df[['content', 'score']]
+    # 無極性の行を削除
+    df = df[df['score'] != 0]
+    # 極性値の絶対値が境界値未満の行を削除
+    df = df[abs(df['score']) >= boundary]
+    # スコアをラベリング
+    df['score'] = df['score'].apply(lambda x: 1 if x > 0 else 0)
+    # ラベルを付与
+    df['label'] = df['score'].apply(lambda x: f'__label__{x}')
+    # 列を抽出
+    df = df[['label', 'content']]
+    # CSVへ出力
+    df.to_csv(labeled_file_path, index=False)
+
+
 def split_review_by_sent(path: Path):
     df = pd.read_csv(path)
     rates = range(1, 5)
@@ -105,4 +160,13 @@ def split_review_by_sent(path: Path):
 
 
 if __name__ == "__main__":
+    # path = pathlib.Path('resources/review/fearphone_review_labeled_wakati.csv')
+    path = pathlib.Path('resources/review/fearphone_review.csv')
+    # path = pathlib.Path('sent_senti_labeled_wakati.csv')
+    # df = pd.read_csv(path)
+    fmt_labeled_review2(path)
+    # sentences = df['comments'].values
+    # sentences = df['content'].values
+    # labels = df['label'].values
+    # gen_model_resource(sentences=sentences, labels=labels)
     pass

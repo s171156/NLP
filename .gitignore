@@ -2,7 +2,7 @@ wikiextractor/
 fastText/
 resources/
 csv/
-my_model/
+my_pretrained_models/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
