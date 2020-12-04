@@ -1,6 +1,7 @@
 # NLP
 卒業論文用 [感情分析/機械学習] スクリプト  
-Amazonレビューの時系列データの感情分析によるサクラレビューの推定
+Amazonレビューの時系列データの感情分析によるサクラレビューの推定  
+### ***開発環境は[GoogleColaboratory](https://drive.google.com/drive/folders/17JdlpRAZnZp5N6urOHcLT0tLiFr_y3Qu?usp=sharing)へ移行しました。***
 
 # DEMO
 
